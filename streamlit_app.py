@@ -6,15 +6,12 @@ from tensorflow.keras.preprocessing import image
 import gdown
 import os
 
-# Set page configuration
+# Page configuration
 st.set_page_config(page_title="Garbage Segregator", page_icon="♻️", layout="centered")
 
-# Apply custom CSS for styling
+# Custom CSS styling
 st.markdown("""
     <style>
-        .main {
-            background-color: #f5f5f5;
-        }
         .stButton>button {
             background-color: #4CAF50;
             color: white;
@@ -24,25 +21,13 @@ st.markdown("""
             font-size: 1em;
             margin-top: 10px;
         }
-        .stFileUploader {
-            margin-bottom: 1em;
-        }
-        .stImage {
-            border-radius: 10px;
-            overflow: hidden;
-            margin-bottom: 1em;
-        }
         h1 {
             color: #2E8B57;
         }
     </style>
 """, unsafe_allow_html=True)
 
-# Title
-st.title("♻️ Garbage Segregator")
-st.markdown("Upload an image to classify whether the waste is **Biodegradable** 🌱 or **Non-Biodegradable** 🗑️.")
-
-# Download model if not present
+# Load model from Google Drive (if not already downloaded)
 model_path = "biodegradable_classifier.h5"
 if not os.path.exists(model_path):
     with st.spinner("Downloading model..."):
@@ -52,34 +37,75 @@ if not os.path.exists(model_path):
             quiet=False
         )
 
-# Load the trained model
 model = load_model(model_path)
 
-# Upload image
-uploaded_file = st.file_uploader("📤 Upload an image (JPG/PNG)", type=["jpg", "jpeg", "png"])
+# Session state for history
+if "history" not in st.session_state:
+    st.session_state.history = []
 
-if uploaded_file is not None:
-    # Show uploaded image
-    img = Image.open(uploaded_file)
-    st.image(img, caption="🖼️ Uploaded Image", use_container_width=True)
+# Sidebar for history and educational content
+with st.sidebar:
+    st.header("📁 Navigation")
+    nav = st.radio("Go to", ["🏠 Main", "📚 Education", "🕘 Prediction History"])
 
-    # Preprocess
-    img = img.resize((150, 150))  # Match training image size
-    img_array = image.img_to_array(img) / 255.0
-    img_array = np.expand_dims(img_array, axis=0)
+    if nav == "📚 Education":
+        st.subheader("🧪 What is Biodegradable?")
+        st.markdown("""
+        **Biodegradable waste** is waste that can be broken down naturally by microorganisms.
 
-    # Predict
-    prediction = model.predict(img_array)
-    confidence = float(prediction[0][0])
+        - 🟢 Examples: Food scraps, paper, leaves, cotton, wood.
+        - ✅ Proper disposal helps create compost and reduce landfill waste.
+        - ❌ Improper disposal can still contribute to pollution if mixed with plastics.
 
-    st.markdown("---")
-    st.subheader("🔍 Prediction Result")
+        ---
 
-    # Display confidence
-    st.write(f"**Model Confidence:** `{confidence:.2f}`")
+        **Non-Biodegradable waste** does *not* decompose naturally.
 
-    # Display class prediction
-    if confidence > 0.5:
-        st.error("🚯 **Predicted: Non-Biodegradable**")
-    else:
-        st.success("🌿 **Predicted: Biodegradable**")
+        - 🔴 Examples: Plastic, metal, glass, Styrofoam.
+        - ✅ Can be recycled or repurposed.
+        - ❌ Improper disposal causes long-term environmental damage, water and soil pollution.
+
+        👉 *Segregating waste properly helps protect ecosystems and reduces pollution.*
+        """)
+
+    elif nav == "🕘 Prediction History":
+        st.subheader("📜 Session Prediction History")
+        if st.session_state.history:
+            for idx, (label, conf) in enumerate(reversed(st.session_state.history), 1):
+                st.write(f"**{idx}.** `{label}` (Confidence: `{conf:.2f}`)")
+        else:
+            st.write("No predictions yet.")
+
+# Main content
+if nav == "🏠 Main":
+    st.title("♻️ Garbage Segregator")
+    st.markdown("Upload an image to classify whether the waste is **Biodegradable** 🌱 or **Non-Biodegradable** 🗑️.")
+
+    uploaded_file = st.file_uploader("📤 Upload an image", type=["jpg", "jpeg", "png"])
+
+    if uploaded_file is not None:
+        img = Image.open(uploaded_file)
+        st.image(img, caption="🖼️ Uploaded Image", use_container_width=True)
+
+        # Preprocess
+        img = img.resize((150, 150))
+        img_array = image.img_to_array(img) / 255.0
+        img_array = np.expand_dims(img_array, axis=0)
+
+        prediction = model.predict(img_array)
+        confidence = float(prediction[0][0])
+
+        st.markdown("---")
+        st.subheader("🔍 Prediction Result")
+        st.write(f"**Model Confidence:** `{confidence:.2f}`")
+
+        # Interpret and display result
+        if confidence > 0.5:
+            result = "Non-Biodegradable"
+            st.error("🚯 **Predicted: Non-Biodegradable**")
+        else:
+            result = "Biodegradable"
+            st.success("🌿 **Predicted: Biodegradable**")
+
+        # Store in session history
+        st.session_state.history.append((result, confidence))
