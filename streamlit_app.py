@@ -117,7 +117,7 @@ elif page == "Want to learn more?":
 
 # --- Page: About Us ---
 elif page == "About us":
-    st.title("👥 About the Team")
+    st.title("yns 🥀")
     st.markdown("""
     ### 🧑‍💻 Team Members
     - Lagunday, Michael Luis
