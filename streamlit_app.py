@@ -120,10 +120,11 @@ elif page == "About us":
     st.title("👥 About the Team")
     st.markdown("""
     ### 🧑‍💻 Team Members
-    - Name 1
-    - Name 2
-    - Name 3
-    - *(Add your names here)*
+    - Lagunday, Michael Luis
+    - Salamanca, Lance
+    - Sarcauga, Dexter
+    - Bondoc, Christian
+    - Roldan, Christian Cyril
 
     ### 🎯 The Problem
     Waste segregation remains a challenge in many communities, leading to improper disposal, pollution, and health hazards.
