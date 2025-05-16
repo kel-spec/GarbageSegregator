@@ -117,9 +117,9 @@ elif page == "Want to learn more?":
 
 # --- Page: About Us ---
 elif page == "About us":
-    st.title("yns 🥀")
+    st.title("CPE019 - CPE32S1")
     st.markdown("""
-    ### 🧑‍💻 Team Members
+    ### 🧑‍💻 YNS 🥀
     - Lagunday, Michael Luis
     - Salamanca, Lance
     - Sarcauga, Dexter
