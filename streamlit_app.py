@@ -6,11 +6,43 @@ from tensorflow.keras.preprocessing import image
 import gdown
 import os
 
-# Title and description
-st.title("Garbage Segregator")
-st.write("Upload an image to classify it as **Biodegradable** or **Non-Biodegradable**.")
+# Set page configuration
+st.set_page_config(page_title="Garbage Segregator", page_icon="♻️", layout="centered")
 
-# Load model from Google Drive using gdown
+# Apply custom CSS for styling
+st.markdown("""
+    <style>
+        .main {
+            background-color: #f5f5f5;
+        }
+        .stButton>button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 0.6em 1.5em;
+            border: none;
+            border-radius: 8px;
+            font-size: 1em;
+            margin-top: 10px;
+        }
+        .stFileUploader {
+            margin-bottom: 1em;
+        }
+        .stImage {
+            border-radius: 10px;
+            overflow: hidden;
+            margin-bottom: 1em;
+        }
+        h1 {
+            color: #2E8B57;
+        }
+    </style>
+""", unsafe_allow_html=True)
+
+# Title
+st.title("♻️ Garbage Segregator")
+st.markdown("Upload an image to classify whether the waste is **Biodegradable** 🌱 or **Non-Biodegradable** 🗑️.")
+
+# Download model if not present
 model_path = "biodegradable_classifier.h5"
 if not os.path.exists(model_path):
     with st.spinner("Downloading model..."):
@@ -20,29 +52,34 @@ if not os.path.exists(model_path):
             quiet=False
         )
 
-# Load the model
+# Load the trained model
 model = load_model(model_path)
 
-# File uploader
-uploaded_file = st.file_uploader("Choose an image...", type=["jpg", "jpeg", "png"])
+# Upload image
+uploaded_file = st.file_uploader("📤 Upload an image (JPG/PNG)", type=["jpg", "jpeg", "png"])
 
 if uploaded_file is not None:
-    # Load and display the image
+    # Show uploaded image
     img = Image.open(uploaded_file)
-    st.image(img, caption="Uploaded Image", use_container_width=True)
+    st.image(img, caption="🖼️ Uploaded Image", use_container_width=True)
 
-    # Preprocess the image (match training setup)
-    img = img.resize((150, 150))  # Replace with your model's input size if different
+    # Preprocess
+    img = img.resize((150, 150))  # Match training image size
     img_array = image.img_to_array(img) / 255.0
-    img_array = np.expand_dims(img_array, axis=0)  # Add batch dimension
+    img_array = np.expand_dims(img_array, axis=0)
 
     # Predict
     prediction = model.predict(img_array)
     confidence = float(prediction[0][0])
 
-    # Show results
-    st.write(f"Model confidence: **{confidence:.2f}**")
+    st.markdown("---")
+    st.subheader("🔍 Prediction Result")
+
+    # Display confidence
+    st.write(f"**Model Confidence:** `{confidence:.2f}`")
+
+    # Display class prediction
     if confidence > 0.5:
-        st.success("Predicted Class: **Non-Biodegradable**")
+        st.error("🚯 **Predicted: Non-Biodegradable**")
     else:
-        st.success("Predicted Class: **Biodegradable**")
+        st.success("🌿 **Predicted: Biodegradable**")
