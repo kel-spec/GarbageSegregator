@@ -6,7 +6,7 @@ from tensorflow.keras.preprocessing import image
 import gdown
 import os
 
-# Page configuration
+# Page config
 st.set_page_config(page_title="Garbage Segregator", page_icon="♻️", layout="centered")
 
 # Custom CSS styling
@@ -27,7 +27,7 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# Load model from Google Drive (if not already downloaded)
+# Load model from Google Drive
 model_path = "biodegradable_classifier.h5"
 if not os.path.exists(model_path):
     with st.spinner("Downloading model..."):
@@ -43,69 +43,80 @@ model = load_model(model_path)
 if "history" not in st.session_state:
     st.session_state.history = []
 
-# Sidebar for history and educational content
+# Sidebar only for history
 with st.sidebar:
-    st.header("📁 Navigation")
-    nav = st.radio("Go to", ["🏠 Main", "📚 Education", "🕘 Prediction History"])
+    st.header("🕘 Prediction History")
+    if st.session_state.history:
+        for idx, (label, conf) in enumerate(reversed(st.session_state.history), 1):
+            st.write(f"**{idx}.** `{label}` (Confidence: `{conf:.2f}`)")
+    else:
+        st.write("No predictions yet.")
 
-    if nav == "📚 Education":
-        st.subheader("🧪 What is Biodegradable?")
-        st.markdown("""
-        **Biodegradable waste** is waste that can be broken down naturally by microorganisms.
+# --- Main App ---
+st.title("♻️ Garbage Segregator")
+st.markdown("Upload an image to classify whether the waste is **Biodegradable** 🌱 or **Non-Biodegradable** 🗑️.")
 
-        - 🟢 Examples: Food scraps, paper, leaves, cotton, wood.
-        - ✅ Proper disposal helps create compost and reduce landfill waste.
-        - ❌ Improper disposal can still contribute to pollution if mixed with plastics.
+uploaded_file = st.file_uploader("📤 Upload an image", type=["jpg", "jpeg", "png"])
 
-        ---
+if uploaded_file is not None:
+    img = Image.open(uploaded_file)
+    st.image(img, caption="🖼️ Uploaded Image", use_container_width=True)
 
-        **Non-Biodegradable waste** does *not* decompose naturally.
+    # Preprocess
+    img = img.resize((150, 150))
+    img_array = image.img_to_array(img) / 255.0
+    img_array = np.expand_dims(img_array, axis=0)
 
-        - 🔴 Examples: Plastic, metal, glass, Styrofoam.
-        - ✅ Can be recycled or repurposed.
-        - ❌ Improper disposal causes long-term environmental damage, water and soil pollution.
+    prediction = model.predict(img_array)
+    confidence = float(prediction[0][0])
 
-        👉 *Segregating waste properly helps protect ecosystems and reduces pollution.*
-        """)
+    st.markdown("---")
+    st.subheader("🔍 Prediction Result")
+    st.write(f"**Model Confidence:** `{confidence:.2f}`")
 
-    elif nav == "🕘 Prediction History":
-        st.subheader("📜 Session Prediction History")
-        if st.session_state.history:
-            for idx, (label, conf) in enumerate(reversed(st.session_state.history), 1):
-                st.write(f"**{idx}.** `{label}` (Confidence: `{conf:.2f}`)")
-        else:
-            st.write("No predictions yet.")
+    # Display prediction
+    if confidence > 0.5:
+        result = "Non-Biodegradable"
+        st.error("🚯 **Predicted: Non-Biodegradable**")
+    else:
+        result = "Biodegradable"
+        st.success("🌿 **Predicted: Biodegradable**")
 
-# Main content
-if nav == "🏠 Main":
-    st.title("♻️ Garbage Segregator")
-    st.markdown("Upload an image to classify whether the waste is **Biodegradable** 🌱 or **Non-Biodegradable** 🗑️.")
+    # Save to history
+    st.session_state.history.append((result, confidence))
 
-    uploaded_file = st.file_uploader("📤 Upload an image", type=["jpg", "jpeg", "png"])
+# --- Education Section ---
+st.markdown("---")
+st.header("📚 Learn About Waste Types")
+st.markdown("""
+### 🧪 What is Biodegradable Waste?
+**Biodegradable waste** refers to substances that decompose naturally and safely by microorganisms.
 
-    if uploaded_file is not None:
-        img = Image.open(uploaded_file)
-        st.image(img, caption="🖼️ Uploaded Image", use_container_width=True)
+- 🟢 Examples: Food scraps, paper, leaves, cotton, wood.
+- ✅ Proper disposal turns them into compost or natural fertilizers.
+- ❌ If mixed with plastics, they lose their composting value.
 
-        # Preprocess
-        img = img.resize((150, 150))
-        img_array = image.img_to_array(img) / 255.0
-        img_array = np.expand_dims(img_array, axis=0)
+---
 
-        prediction = model.predict(img_array)
-        confidence = float(prediction[0][0])
+### 🔴 What is Non-Biodegradable Waste?
+**Non-biodegradable waste** doesn't decompose or takes hundreds of years to break down.
 
-        st.markdown("---")
-        st.subheader("🔍 Prediction Result")
-        st.write(f"**Model Confidence:** `{confidence:.2f}`")
+- 🔴 Examples: Plastic, metal, glass, batteries, Styrofoam.
+- ✅ Can be recycled or reused.
+- ❌ Improper disposal leads to pollution, harming marine and land ecosystems.
 
-        # Interpret and display result
-        if confidence > 0.5:
-            result = "Non-Biodegradable"
-            st.error("🚯 **Predicted: Non-Biodegradable**")
-        else:
-            result = "Biodegradable"
-            st.success("🌿 **Predicted: Biodegradable**")
+---
 
-        # Store in session history
-        st.session_state.history.append((result, confidence))
+### 🌍 Why Segregation Matters
+Proper segregation:
+- Reduces landfill waste
+- Promotes recycling and composting
+- Lowers greenhouse gas emissions
+""")
+
+# --- Educational Videos ---
+st.subheader("🎥 Educational Videos")
+st.video("https://www.youtube.com/watch?v=6IjaZ2g-21E")  # Biodegradable vs non-biodegradable waste
+st.video("https://www.youtube.com/watch?v=V0lQ3ljjl40")  # Waste management
+
+st.markdown("*Tip: Scroll up to upload and test more waste images!*")
