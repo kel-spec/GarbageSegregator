@@ -116,7 +116,7 @@ Proper segregation:
 
 # --- Educational Videos ---
 st.subheader("🎥 Educational Videos")
-st.video("https://www.youtube.com/watch?v=6IjaZ2g-21E")  # Biodegradable vs non-biodegradable waste
+st.video("https://www.youtube.com/watch?v=4ECxHTf_Co4")  # Biodegradable vs non-biodegradable waste
 st.video("https://www.youtube.com/watch?v=V0lQ3ljjl40")  # Waste management
 
 st.markdown("*Tip: Scroll up to upload and test more waste images!*")
