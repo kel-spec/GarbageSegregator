@@ -119,7 +119,7 @@ elif page == "Want to learn more?":
 elif page == "About us":
     st.title("CPE019 - CPE32S1")
     st.markdown("""
-    ### 🧑‍💻 YNS 🥀
+    ### 🧑‍💻 Members
     - Lagunday, Michael Luis
     - Salamanca, Lance
     - Sarcauga, Dexter
